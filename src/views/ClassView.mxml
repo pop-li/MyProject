@@ -1,8 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		xmlns:s="library://ns.adobe.com/flex/spark" 
-		actionBarVisible="false">
+		actionBarVisible="false"
+		initialize="initHandler()" xmlns:vos="vos.*">
+	<fx:Script>
+		<![CDATA[
+			import components.ClassBox;
+			
+			import flash.utils.setTimeout;
+			
+			import mx.events.FlexEvent;
+			
+			protected function initHandler():void
+			{
+				var classArrLength : int = classArr.length;
+				
+				var classBox : ClassBox;
+				for(var i:int=0;i<classArrLength;i++) {
+					classBox = new ClassBox();
+					classBox.data = this.classArr[i];
+					classGroup.addElement(classBox);
+					setTimeout(classBox.showEffect,300*(i+1));
+				}
+			}
+			
+		]]>
+	</fx:Script>
 	<fx:Declarations>
+		<fx:Vector id="classArr" type="vos.ClassVO">
+			<vos:ClassVO type="商务" source="assets/background/Border.jpg"/>
+			<vos:ClassVO type="休闲" source="assets/background/Border.jpg"/>
+			<vos:ClassVO type="运动" source="assets/background/Border.jpg"/>
+			<vos:ClassVO type="其他" source="assets/background/Border.jpg"/>
+		</fx:Vector>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:Scale id="scaleEffect" />
 	</fx:Declarations>
+	
+	
+	<s:Scroller width="100%" height="100%">
+		<s:HGroup verticalAlign="middle">
+			<s:Spacer width="50" />
+			<s:HGroup id="classGroup" gap="50" verticalAlign="middle" />
+			<s:Spacer width="50" />
+		</s:HGroup>
+	</s:Scroller>
 </s:View>

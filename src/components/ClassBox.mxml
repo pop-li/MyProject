@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Group xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" width="400" height="600"
+		  visible="false">
+	<fx:Script>
+		<![CDATA[
+			import vos.ClassVO;
+			[Bindable]
+			public var data : ClassVO;
+			
+			public function showEffect():void
+			{
+				this.visible = true;
+				
+				scaleEffect.scaleXFrom=0.8;
+				scaleEffect.scaleYFrom=0.8;
+				scaleEffect.scaleXTo=1;
+				scaleEffect.scaleYTo=1;
+				scaleEffect.duration = 400;
+				scaleEffect.target = this;
+				
+				moveEffect.xFrom = 150;
+				moveEffect.xTo = 0;
+				moveEffect.duration = 600;
+				moveEffect.target = box;
+				
+				scaleEffect.play();
+				moveEffect.play();
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<s:Scale id="scaleEffect" />
+		<s:Move id="moveEffect" />
+	</fx:Declarations>
+	<s:Group id="box" width="100%" height="100%">
+		<s:Label text="{data.type}" fontSize="30" y="-30" />
+		<s:Button icon="{data.source}" />
+	</s:Group>
+</s:Group>
