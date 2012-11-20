@@ -1,7 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
-			   xmlns:s="library://ns.adobe.com/flex/spark" applicationDPI="160">
+			   xmlns:s="library://ns.adobe.com/flex/spark" applicationDPI="160"
+			   initialize="init()">
+	<fx:Script>
+		<![CDATA[
+			import flash.utils.getTimer;
+			
+			import mx.events.FlexEvent;
+			[Bindable]
+			private var fps:Number;
+			private var preTime:int;
+			private var curTime:int;
+			
+			protected function init():void
+			{
+				// TODO Auto-generated method stub
+				this.addEventListener(Event.ENTER_FRAME,enterFrameHandler);
+			}
+			
+			private function enterFrameHandler(event:Event):void
+			{
+				curTime = getTimer();
+				fps = 1000/(curTime - preTime);
+				preTime = curTime;
+			}
+			
+		]]>
+	</fx:Script>
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
 	</fx:Declarations>
+	<s:ViewNavigator width="100%" height="100%" firstView="views.ClassView">
+		
+	</s:ViewNavigator>
+	<s:Label text="{fps.toFixed(2)}" x="10" y="50" />
 </s:Application>
