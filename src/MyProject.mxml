@@ -6,14 +6,21 @@
 		<![CDATA[
 			import flash.utils.getTimer;
 			
+			import model.ModelLocator;
+			
 			import mx.events.FlexEvent;
 			[Bindable]
 			private var fps:Number;
 			private var preTime:int;
 			private var curTime:int;
 			
+			private var _model:ModelLocator=ModelLocator.getInstance();
+			
 			protected function init():void
 			{
+				_model.screenWidth = this.width;
+				_model.screenHeight = this.height;
+				
 				// TODO Auto-generated method stub
 				this.addEventListener(Event.ENTER_FRAME,enterFrameHandler);
 			}

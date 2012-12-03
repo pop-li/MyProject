@@ -19,7 +19,7 @@
 				scaleEffect.duration = 400;
 				scaleEffect.target = this;
 				
-				moveEffect.xFrom = 150;
+				moveEffect.xFrom = 100;
 				moveEffect.xTo = 0;
 				moveEffect.duration = 600;
 				moveEffect.target = box;
