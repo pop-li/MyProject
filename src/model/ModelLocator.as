@@ -3,12 +3,9 @@ package model
 	import flash.errors.IllegalOperationError;
 
 	[Bindable]
-	public class ModelLocator
+	public class ModelLocator extends UIModel
 	{
 		private static var instance:ModelLocator;
-		
-		public var screenWidth:int;
-		public var screenHeight:int;
 		
 		public function ModelLocator()
 		{

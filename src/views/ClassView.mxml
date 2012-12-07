@@ -29,7 +29,7 @@
 			
 			private function toProductListView(event:MouseEvent):void
 			{
-				this.navigator.pushView(ProductDetailView,null,null,new CrossFadeViewTransition());
+				this.navigator.pushView(ProductView,null,null,new CrossFadeViewTransition());
 			}
 			
 		]]>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:ViewNavigator xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				 xmlns:s="library://ns.adobe.com/flex/spark"  
+				 xmlns:components="components.*"
+				 width="480" height="320" firstView="components.ShoesPic">
+	<fx:Script>
+		<![CDATA[
+			import vos.ShoesVO;
+			
+			public function set data(value : ShoesVO):void
+			{
+				this.pushView(ShoesPic,value);
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+</s:ViewNavigator>

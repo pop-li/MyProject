@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" 
+		xmlns:components="components.*"
+		actionBarVisible="false" 
+		viewActivate="viewActivateHandler(event)"
+		>
+	<fx:Script>
+		<![CDATA[
+			import spark.events.ViewNavigatorEvent;
+			
+			import model.ModelLocator;
+			[Bindable]
+			private var _model:ModelLocator = ModelLocator.getInstance();
+			
+			protected function viewActivateHandler(event:ViewNavigatorEvent):void
+			{
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<components:ColorPage width="{this.width}" height="{this.height}" />
+		<components:PicturePage width="{this.width}" height="{this.height}" />
+	</fx:Declarations>
+	<s:Scroller  id="scroller" width="100%" height="100%" pageScrollingEnabled="true" scrollSnappingMode="leadingEdge"
+				 verticalScrollPolicy="off">
+		<s:VGroup id="detailGroup" width="100%" >
+			<components:ProductList width="{this.width}" height="{this.height}" />
+		</s:VGroup>
+	</s:Scroller>
+	<!--<s:HGroup width="100" height="100%" verticalAlign="middle">
+		<s:BorderContainer borderWeight="3" width="100%" height="80%">
+			<s:Button label="test" click="abc()"/>
+		</s:BorderContainer>
+	</s:HGroup>-->
+</s:View>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		xmlns:s="library://ns.adobe.com/flex/spark" title="ShoesPic"
+		creationComplete="creationCompleteHandler(event)"
+		dataChange="dataChangeHandler(event)" actionBarVisible="false" backgroundAlpha="0">
+	<fx:Script>
+		<![CDATA[
+			import mx.events.FlexEvent;
+			
+			import vos.ShoesVO;
+			
+			private var _data:ShoesVO;
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				this.removeEventListener(FlexEvent.CREATION_COMPLETE,creationCompleteHandler);
+				img.x = -this.width/2;
+				img.y = -this.height/3;
+				
+				if(_data) {
+					img.source = _data.shoeImagSource;
+				}
+			}
+			
+			protected function dataChangeHandler(event:FlexEvent):void
+			{
+				if(data) {
+					_data = data as ShoesVO;
+					if(img) {
+						img.source = _data.shoeImagSource;
+					}
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:Image id="img" />
+</s:View>

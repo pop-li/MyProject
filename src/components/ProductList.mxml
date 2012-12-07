@@ -1,0 +1,289 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:VGroup xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		  xmlns:s="library://ns.adobe.com/flex/spark" 
+		  horizontalAlign="center" verticalAlign="middle"
+		  creationComplete="creationCompleteHandler(event)"
+		  >
+	
+	<fx:Script>
+		<![CDATA[
+			import com.greensock.TweenLite;
+			import com.greensock.easing.Strong;
+			
+			import flash.utils.getTimer;
+			
+			import mx.events.FlexEvent;
+			
+			import model.ModelLocator;
+			
+			import vos.ShoesVO;
+			
+			private var _model:ModelLocator = ModelLocator.getInstance();
+			
+			/**
+			 * 该类商品的所有商品列表
+			 */
+			private var _shoesArr:Vector.<Shoes>=new Vector.<Shoes>();
+			/**
+			 * 当前聚焦的产品在所有产品中的索引位置
+			 */
+			private var _focusShoeIndex:int = 0;
+			
+			private var leftIndex:int=0;
+			private var rightIndex:int=0;
+			private var _preX:int;
+			private var _curX:int;
+			private var _preT:int;
+			private var _curT:int;
+			
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				productList.width = _model.screenWidth;
+				productList.height = _model.screenHeight;
+				
+				for(var i:int=0;i<2;i++) { //同屏显示5个
+					var shoeVO:ShoesVO = new ShoesVO();
+					shoeVO.shoeImagSource = "/assets/shoes/" + (i+1) + ".png";
+					var shoe:Shoes=new Shoes();
+					shoe.data = shoeVO;
+					_shoesArr.push(shoe);
+					
+//					shoe.scaleX = _model.SHOES_SCALE;
+//					shoe.scaleY = _model.SHOES_SCALE;
+//					shoe.x = calculateX(i);
+//					shoe.y = productList.height/2;
+//					productList.addElementAt(shoe,0);
+					
+					addShoeToStage(i);
+				}
+				
+			}
+			
+			/**
+			 * 将指定产品添加到舞台
+			 * @param shoe要添加到舞台的指定产品的索引
+			 */
+			protected function addShoeToStage(index:int):Shoes
+			{
+				if(index<0||index>_shoesArr.length-1) return null; //如果超出范围，则直接return
+				
+				
+				if(index==this._focusShoeIndex) {
+				} else {
+					if(index>this._focusShoeIndex) {
+						rightIndex = index;
+					} else {
+						leftIndex = index;
+					}
+					_shoesArr[index].scaleX = _model.SHOES_SCALE;
+					_shoesArr[index].scaleY = _model.SHOES_SCALE;
+				}
+				
+				_shoesArr[index].x = calculateExpectX(index);
+				_shoesArr[index].y = productList.height/2;
+				return productList.addElementAt(_shoesArr[index],0) as Shoes;
+			}
+			/**
+			 * 讲指定的产品从舞台删除
+			 * 
+			 * @param shoe要从舞台删除的指定产品的索引
+			 */
+			protected function removeShoeFromStage(index:int):Shoes
+			{
+				if(index<0||index>_shoesArr.length-1) return null; //如果超出范围，则直接return
+				
+				if(index>this._focusShoeIndex) {
+					rightIndex --;
+				} else {
+					leftIndex ++;
+				}
+				return productList.removeElement(_shoesArr[index]) as Shoes;
+			}
+			/**
+			 * 将产品聚焦中央
+			 * @param shoe要聚焦的产品的索引
+			 */
+			protected function makeFocusShoe(index:int):void
+			{
+				if(index<0||index>_shoesArr.length-1) return; //如果超出范围，则直接return
+				
+				TweenLite.to(this._shoesArr[index], 0.7, {scaleX:1,scaleY:1, ease:Strong.easeOut});
+				TweenLite.to(this._shoesArr[this._focusShoeIndex], 0.7, {scaleX:_model.SHOES_SCALE,scaleY:_model.SHOES_SCALE, ease:Strong.easeOut});
+				this._focusShoeIndex = index;
+				productList.setElementIndex(this._shoesArr[index],productList.numChildren-1);
+			}
+			
+//			protected function calculateX(index:int):int
+//			{
+//				var _distance:int=index-this._focusShoeIndex;
+//				if(0==_distance) {
+//					return this._shoesArr[_focusShoeIndex].x;
+//				} else {
+//					if(_distance<0) {
+//						return this._shoesArr[_focusShoeIndex].x - _model.focusShoeSpace + (_distance-1)*_model.unfocusShoeSpace;
+//					} else {
+//						return this._shoesArr[_focusShoeIndex].x + _model.focusShoeSpace + (_distance-1)*_model.unfocusShoeSpace;
+//					}
+//				}
+//			}
+			
+			protected function calculateExpectX(index:int):int
+			{
+				var _distance:int=index-this._focusShoeIndex;
+				if(0==_distance) {
+					return _model.screenWidth/2;
+				} else {
+					if(_distance<0) {
+						return _model.screenWidth/2 - _model.focusShoeSpace - _model.focusShoeSpace/_model.focusDividedUnfocusSpeed - (_distance-1)*_model.unfocusShoeSpace;
+					} else {
+						return _model.screenWidth/2 + _model.focusShoeSpace + _model.focusShoeSpace/_model.focusDividedUnfocusSpeed + (_distance-1)*_model.unfocusShoeSpace;
+					}
+				}
+			}
+			
+			protected function touchBeginHandler(event:TouchEvent):void
+			{
+				event.stopImmediatePropagation();
+				
+				//结束当前的效果
+				TweenLite.killTweensOf(productList);
+				//记录开始触摸屏幕时的坐标和时间点
+				_curX = _preX = this.mouseX;
+				_curT = _preT = getTimer();
+//				productList.startDrag(false, new Rectangle(productList.x-9999, productList.y, 9999999, 0));
+				//注意：这里是监听整个舞台的手离开屏幕事件
+				this.stage.addEventListener(TouchEvent.TOUCH_END, touchEndHandler, false, 0, true);
+				productList.addEventListener(Event.ENTER_FRAME, enterFrameHandler, false, 0, true);
+			}
+			
+			protected function touchEndHandler(event:TouchEvent):void
+			{
+//				productList.stopDrag();
+				productList.removeEventListener(Event.ENTER_FRAME, enterFrameHandler);
+				this.stage.removeEventListener(TouchEvent.TOUCH_END, touchEndHandler);
+				var elapsedTime:Number = (getTimer() - _preT) / 1000;
+				var xVelocity:Number = (this.mouseX - _preX) / elapsedTime;
+				//we make sure that the velocity is at least 20 pixels per second in either direction in order to advance. Otherwise, look at the position of the _container and if it's more than halfway into the next/previous panel, tween there.
+//				if (_currentPanelIndex > 0 && (xVelocity > 20 || _container.x > (_currentPanelIndex - 0.5) * -_panelBounds.width + _panelBounds.x)) {
+//					_currentPanelIndex--;
+//				} else if (_currentPanelIndex < _panelCount - 1 && (xVelocity < -20 || _container.x < (_currentPanelIndex + 0.5) * -_panelBounds.width + _panelBounds.x)) {
+//					_currentPanelIndex++;
+//				}
+//				TweenLite.to(productList, 0.7, {x:_currentPanelIndex * -_panelBounds.width + _panelBounds.x, ease:Strong.easeOut});
+			}
+			
+			protected function enterFrameHandler(event:Event):void
+			{
+				_preX = _curX;
+				_preT = _curT;
+				_curX = this.mouseX;
+				_curT = getTimer();
+				
+				var _distanceX:int = (_curX-_preX)*_model.focusDividedTouchSpeed; //计算手势移动的位移在实际效果中移动多少
+				
+				var count:int = _shoesArr.length;
+				var l:int=0;
+					
+				for(var i:int=_focusShoeIndex;i<=rightIndex;i+=l) {
+					
+//				for(var i:int=Math.max(0,_focusShoeIndex-2);i<Math.min(_focusShoeIndex+3,_shoesArr.length);i++) {
+//					_shoesArr[i].x += _distanceX;
+//					trace("x1     " + destionationX);
+//					if(i==_focusShoeIndex){
+//						var destionationX:int = _shoesArr[i].x + _distanceX;
+//						trace("x2     " + destionationX);
+//						if(destionationX > calculateX(_focusShoeIndex+1)) {
+//							_shoesArr[i].x += _model.focusShoeSpace;
+//						} else if(destionationX < calculateX(_focusShoeIndex-1)) {
+//							_shoesArr[i].x -= _model.focusShoeSpace;
+//						} else {
+//							_shoesArr[i].x += _distanceX;
+//						}
+//					}
+					if(i==_focusShoeIndex) {
+						var destionationX:int = _shoesArr[i].x + _distanceX*_model.focusDividedUnfocusSpeed;
+//						if(i==0||i==count-1) {
+//							trace("   destionationX " + destionationX + "   focus1   " + _shoesArr[i].x + "    _distanceX " + _distanceX + "  *    _model.focusDividedUnfocusSpeed " + _model.focusDividedUnfocusSpeed);
+//							_shoesArr[i].x = destionationX;
+//						} else {
+							if(destionationX>_model.screenWidth/2+_model.focusShoeSpace) {//向右移动出聚焦商品的范围
+								if(i==0) {
+									trace("   destionationX " + destionationX + "   focus1   " + _shoesArr[i].x + "    _distanceX " + _distanceX + "  *    _model.focusDividedUnfocusSpeed " + _model.focusDividedUnfocusSpeed + "  toRight");
+									_shoesArr[i].x = destionationX;
+								} else {
+									_shoesArr[i].x += (_model.screenWidth/2+_model.focusShoeSpace-_shoesArr[i].x)*_model.focusDividedUnfocusSpeed + (destionationX-_model.screenWidth/2-_model.focusShoeSpace);
+									_shoesArr[i-1].x += (destionationX-_model.screenWidth/2-_model.focusShoeSpace)*_model.focusDividedUnfocusSpeed + (_model.screenWidth/2+_model.focusShoeSpace-_shoesArr[i].x);
+									addShoeToStage(i-3);
+									removeShoeFromStage(i+2);
+									trace("focus2   " + _shoesArr[i].x);
+								}
+							} else if(destionationX<_model.screenWidth/2-_model.focusShoeSpace) {//向左移动出聚焦商品的范围
+								if(i==count-1) {
+									trace("   destionationX " + destionationX + "   focus1   " + _shoesArr[i].x + "    _distanceX " + _distanceX + "  *    _model.focusDividedUnfocusSpeed " + _model.focusDividedUnfocusSpeed + "  toLeft");
+									_shoesArr[i].x = destionationX;
+								} else {
+									_shoesArr[i].x -= (_shoesArr[i].x-_model.screenWidth/2+_model.focusShoeSpace)*_model.focusDividedUnfocusSpeed + (_model.screenWidth/2-_model.focusShoeSpace-destionationX);
+									_shoesArr[i+1].x -= (_model.screenWidth/2-_model.focusShoeSpace-destionationX)*_model.focusDividedUnfocusSpeed + (_shoesArr[i].x-_model.screenWidth/2+_model.focusShoeSpace);
+									addShoeToStage(this._focusShoeIndex+3);
+									removeShoeFromStage(this._focusShoeIndex-2);
+									trace("focus3   " + _shoesArr[i].x);
+								}
+							} else {
+								_shoesArr[i].x = destionationX; 
+								trace("focus4   " + _shoesArr[i].x);
+							}
+//						}
+					} else {
+						trace("   destionationX " + (_shoesArr[i].x + _distanceX) + "   unfocus   " + _shoesArr[i].x + "    _distanceX " + _distanceX);
+						_shoesArr[i].x += _distanceX;
+					}
+					
+					if(i==leftIndex) {
+						i=_focusShoeIndex;
+						l=1;
+					} else {
+						if(i==_focusShoeIndex) {
+							l=-1;
+						}
+					}
+				}
+				
+				//??每次都执行
+				if(_shoesArr[this._focusShoeIndex].x>_model.screenWidth/2 + _model.focusShoeSpace) { //如果向右拖动到位置，聚焦商品换为上一个
+					if(this._focusShoeIndex-1<0) return; //如果已经到边缘，则直接return
+//					addShoeToStage(this._focusShoeIndex-3);
+//					removeShoeFromStage(this._focusShoeIndex+2);
+					makeFocusShoe(this._focusShoeIndex-1);
+				} else if(_shoesArr[this._focusShoeIndex].x<_model.screenWidth/2 - _model.focusShoeSpace) { //如果向左拖动到位置，聚焦商品换为下一个
+					if(this._focusShoeIndex == _shoesArr.length-1) return; //如果已经到边缘，则直接return
+//					addShoeToStage(this._focusShoeIndex+3);
+//					removeShoeFromStage(this._focusShoeIndex-2);
+					makeFocusShoe(this._focusShoeIndex+1);
+					trace("-----------------------change focus --------------------");
+				}
+				
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<!--<s:Label text="DetailPage" fontSize="50" />-->
+	
+	
+	<!--<s:Scroller width="480" height="320" pageScrollingEnabled="true" >
+		<s:HGroup width="100%" height="100%">
+			<s:Image source="assets/shoes/1.png"  />
+			<s:Image source="assets/shoes/2.png"  />
+			<s:Image source="assets/shoes/3.png" />
+			<s:Image source="assets/shoes/4.png"  />
+			<s:Image source="assets/shoes/5.png"  />
+		</s:HGroup>
+	</s:Scroller>-->
+	<s:Group id="productList" width="100%" height="100%"
+			 touchBegin="touchBeginHandler(event)" >
+		
+	</s:Group>
+</s:VGroup>

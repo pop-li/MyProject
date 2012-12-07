@@ -6,9 +6,9 @@
 		<![CDATA[
 			import flash.utils.getTimer;
 			
-			import model.ModelLocator;
-			
 			import mx.events.FlexEvent;
+			
+			import model.ModelLocator;
 			[Bindable]
 			private var fps:Number;
 			private var preTime:int;
@@ -18,8 +18,21 @@
 			
 			protected function init():void
 			{
+				Multitouch.inputMode = MultitouchInputMode.TOUCH_POINT;
+				
 				_model.screenWidth = this.width;
 				_model.screenHeight = this.height;
+				
+				_model.shoeWidth = 480;
+				_model.shoeHeight = 320;
+				
+				_model.focusDividedTouchSpeed = 1;
+				
+				_model.unfocusShoeSpace = _model.shoeWidth/3;
+				_model.focusDividedUnfocusSpeed = 2;
+				
+				_model.focusShoeSpace = _model.unfocusShoeSpace*_model.focusDividedUnfocusSpeed/2;
+				
 				
 				// TODO Auto-generated method stub
 				this.addEventListener(Event.ENTER_FRAME,enterFrameHandler);
@@ -39,5 +52,5 @@
 	</fx:Declarations>
 	<s:ViewNavigator width="100%" height="100%" firstView="views.ClassView" />
 		
-	<s:Label text="{fps.toFixed(2)}" x="10" y="50" />
+	<s:Label text="{fps.toFixed(2)} fps" x="10" y="50" />
 </s:Application>
