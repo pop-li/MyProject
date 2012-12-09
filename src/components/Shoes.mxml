@@ -7,6 +7,8 @@
 		<![CDATA[
 			import vos.ShoesVO;
 			
+			public var index:int;
+			
 			public function set data(value : ShoesVO):void
 			{
 				this.pushView(ShoesPic,value);

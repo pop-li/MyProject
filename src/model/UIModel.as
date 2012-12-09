@@ -35,8 +35,14 @@ package model
 		 * (商品列表试图)非聚焦商品之间的相隔距离
 		 */
 		public var unfocusShoeSpace:int;
-		
-		public const SHOES_SCALE:Number=0.5;
+		/**
+		 * (商品列表试图)非聚焦商品缩放的倍数
+		 */
+		public var shoesScale:Number;
+		/**
+		 * (商品列表试图)舞台同时显示的商品个数
+		 */
+		public var showCount4Stage:int;
 		
 		public function UIModel()
 		{

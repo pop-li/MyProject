@@ -41,7 +41,8 @@
 				productList.width = _model.screenWidth;
 				productList.height = _model.screenHeight;
 				
-				for(var i:int=0;i<2;i++) { //同屏显示5个
+				var initCount:int = _focusShoeIndex + Math.ceil(_model.showCount4Stage/2);
+				for(var i:int=0;i<_model.showCount4Stage;i++) { //同屏显示个数
 					var shoeVO:ShoesVO = new ShoesVO();
 					shoeVO.shoeImagSource = "/assets/shoes/" + (i+1) + ".png";
 					var shoe:Shoes=new Shoes();
@@ -54,7 +55,9 @@
 //					shoe.y = productList.height/2;
 //					productList.addElementAt(shoe,0);
 					
-					addShoeToStage(i);
+					if(i<initCount) {
+						addShoeToStage(i);
+					}
 				}
 				
 			}
@@ -75,8 +78,8 @@
 					} else {
 						leftIndex = index;
 					}
-					_shoesArr[index].scaleX = _model.SHOES_SCALE;
-					_shoesArr[index].scaleY = _model.SHOES_SCALE;
+					_shoesArr[index].scaleX = _model.shoesScale;
+					_shoesArr[index].scaleY = _model.shoesScale;
 				}
 				
 				_shoesArr[index].x = calculateExpectX(index);
@@ -108,7 +111,7 @@
 				if(index<0||index>_shoesArr.length-1) return; //如果超出范围，则直接return
 				
 				TweenLite.to(this._shoesArr[index], 0.7, {scaleX:1,scaleY:1, ease:Strong.easeOut});
-				TweenLite.to(this._shoesArr[this._focusShoeIndex], 0.7, {scaleX:_model.SHOES_SCALE,scaleY:_model.SHOES_SCALE, ease:Strong.easeOut});
+				TweenLite.to(this._shoesArr[this._focusShoeIndex], 0.7, {scaleX:_model.shoesScale,scaleY:_model.shoesScale, ease:Strong.easeOut});
 				this._focusShoeIndex = index;
 				productList.setElementIndex(this._shoesArr[index],productList.numChildren-1);
 			}
@@ -134,7 +137,7 @@
 					return _model.screenWidth/2;
 				} else {
 					if(_distance<0) {
-						return _model.screenWidth/2 - _model.focusShoeSpace - _model.focusShoeSpace/_model.focusDividedUnfocusSpeed - (_distance-1)*_model.unfocusShoeSpace;
+						return _model.screenWidth/2 - _model.focusShoeSpace - _model.focusShoeSpace/_model.focusDividedUnfocusSpeed - (-_distance-1)*_model.unfocusShoeSpace;
 					} else {
 						return _model.screenWidth/2 + _model.focusShoeSpace + _model.focusShoeSpace/_model.focusDividedUnfocusSpeed + (_distance-1)*_model.unfocusShoeSpace;
 					}
@@ -146,7 +149,9 @@
 				event.stopImmediatePropagation();
 				
 				//结束当前的效果
-				TweenLite.killTweensOf(productList);
+				for(var i:int=leftIndex;i<=rightIndex;i++) { //同屏显示5个
+					TweenLite.killTweensOf(_shoesArr[i]);
+				}
 				//记录开始触摸屏幕时的坐标和时间点
 				_curX = _preX = this.mouseX;
 				_curT = _preT = getTimer();
@@ -163,6 +168,11 @@
 				this.stage.removeEventListener(TouchEvent.TOUCH_END, touchEndHandler);
 				var elapsedTime:Number = (getTimer() - _preT) / 1000;
 				var xVelocity:Number = (this.mouseX - _preX) / elapsedTime;
+				
+				for(var i:int=leftIndex;i<=rightIndex;i++) { //同屏显示5个
+					
+					TweenLite.to(_shoesArr[i], 0.7, {x:calculateExpectX(i), ease:Strong.easeOut,overwrite:false});
+				}
 				//we make sure that the velocity is at least 20 pixels per second in either direction in order to advance. Otherwise, look at the position of the _container and if it's more than halfway into the next/previous panel, tween there.
 //				if (_currentPanelIndex > 0 && (xVelocity > 20 || _container.x > (_currentPanelIndex - 0.5) * -_panelBounds.width + _panelBounds.x)) {
 //					_currentPanelIndex--;
@@ -179,62 +189,89 @@
 				_curX = this.mouseX;
 				_curT = getTimer();
 				
+				if(_curX==_preX) return;
 				var _distanceX:int = (_curX-_preX)*_model.focusDividedTouchSpeed; //计算手势移动的位移在实际效果中移动多少
+				
+				_distanceX=Math.min(_model.focusShoeSpace*2,_distanceX);
 				
 				var count:int = _shoesArr.length;
 				var l:int=0;
 					
 				for(var i:int=_focusShoeIndex;i<=rightIndex;i+=l) {
-					
-//				for(var i:int=Math.max(0,_focusShoeIndex-2);i<Math.min(_focusShoeIndex+3,_shoesArr.length);i++) {
-//					_shoesArr[i].x += _distanceX;
-//					trace("x1     " + destionationX);
-//					if(i==_focusShoeIndex){
-//						var destionationX:int = _shoesArr[i].x + _distanceX;
-//						trace("x2     " + destionationX);
-//						if(destionationX > calculateX(_focusShoeIndex+1)) {
-//							_shoesArr[i].x += _model.focusShoeSpace;
-//						} else if(destionationX < calculateX(_focusShoeIndex-1)) {
-//							_shoesArr[i].x -= _model.focusShoeSpace;
-//						} else {
-//							_shoesArr[i].x += _distanceX;
-//						}
-//					}
-					if(i==_focusShoeIndex) {
+					/**
+					 //0.判断是否为聚焦商品
+					 //--1.若为聚焦商品，则区分向左还是向右拖动
+					 //----2.若从左向右，则判断是否跨越了聚焦区域右断点
+					 //------3.没有跨越聚焦区域的右侧端点
+					 //--------fomula : 聚焦商品移动位移=移动位移×卷轴移动倍数
+					 //------3.跨越了聚焦区域的右侧端点，则判断当前聚焦商品是否为最右侧
+					 //--------4.若为最左侧，
+					 //----------fomula : 聚焦商品移动位移=移动位移×卷轴移动倍数
+					 //--------4.否则代表向右跨越右侧聚焦区域断点
+					 //----------fomula : 聚焦商品移动位移=跨越之前的移动位移×卷轴移动倍数+跨越之后的移动位移
+					 //----------fomula : 聚焦商品左侧的前一个非聚焦商品移动位移=跨越之前的移动位移+跨越之后的移动位移×卷轴移动倍数
+					 //----2.若从右向左，则判断是否跨越了聚焦区域左断点
+					 //------3.没有跨越聚焦区域的左侧端点
+					 //----------fomula : 聚焦商品移动位移=移动位移×卷轴移动倍数
+					 //------3.跨越了聚焦区域的左侧端点，则判断当前聚焦商品是否为最右侧
+					 //--------4.若为最右侧，
+					 //----------fomula : 聚焦商品移动位移=移动位移×卷轴移动倍数
+					 //--------4.否则代表向右跨越右侧聚焦区域断点
+					 //----------fomula : 聚焦商品移动位移=跨越之前的移动位移×卷轴移动倍数+跨越之后的移动位移
+					 //----------fomula : 聚焦商品左侧的前一个非聚焦商品移动位移=跨越之前的移动位移+跨越之后的移动位移×卷轴移动倍数
+					 //0.判断是否为聚焦商品
+					 //--1.若不为聚焦商品
+					 //----fomula : 非聚焦商品移动位移=移动位移
+					 **/
+					 //0.判断是否为聚焦商品
+					if(i==_focusShoeIndex) { //--1.若为聚焦商品，则区分向左还是向右拖动
+						var prePoint:int = _shoesArr[i].x;
 						var destionationX:int = _shoesArr[i].x + _distanceX*_model.focusDividedUnfocusSpeed;
-//						if(i==0||i==count-1) {
-//							trace("   destionationX " + destionationX + "   focus1   " + _shoesArr[i].x + "    _distanceX " + _distanceX + "  *    _model.focusDividedUnfocusSpeed " + _model.focusDividedUnfocusSpeed);
-//							_shoesArr[i].x = destionationX;
-//						} else {
-							if(destionationX>_model.screenWidth/2+_model.focusShoeSpace) {//向右移动出聚焦商品的范围
-								if(i==0) {
-									trace("   destionationX " + destionationX + "   focus1   " + _shoesArr[i].x + "    _distanceX " + _distanceX + "  *    _model.focusDividedUnfocusSpeed " + _model.focusDividedUnfocusSpeed + "  toRight");
+						
+						if(_distanceX>0) { //----2.若从左向右，则判断是否跨越了聚焦区域右断点
+							if(destionationX<_model.screenWidth/2+_model.focusShoeSpace) { //------3.没有跨越聚焦区域的右侧端点
+								 //--------fomula : 聚焦商品移动位移=移动位移×卷轴移动倍数
+								_shoesArr[i].x = destionationX;
+								trace("move to   _distanceX " + _distanceX + " * _model.focusDividedUnfocusSpeed" + _model.focusDividedUnfocusSpeed);
+							} else { //------3.跨越了聚焦区域的右侧端点，则判断当前聚焦商品是否为最右侧
+								if(i==leftIndex) { //--------4.若为最左侧，
+									 //----------fomula : 聚焦商品移动位移=移动位移×卷轴移动倍数
+									trace("leftest   toX " + destionationX + "  fromX " + _shoesArr[i].x + " + _distanceX " + _distanceX + "  *    _model.focusDividedUnfocusSpeed " + _model.focusDividedUnfocusSpeed);
 									_shoesArr[i].x = destionationX;
-								} else {
-									_shoesArr[i].x += (_model.screenWidth/2+_model.focusShoeSpace-_shoesArr[i].x)*_model.focusDividedUnfocusSpeed + (destionationX-_model.screenWidth/2-_model.focusShoeSpace);
-									_shoesArr[i-1].x += (destionationX-_model.screenWidth/2-_model.focusShoeSpace)*_model.focusDividedUnfocusSpeed + (_model.screenWidth/2+_model.focusShoeSpace-_shoesArr[i].x);
+								} else { //--------4.否则代表向右跨越右侧聚焦区域断点
+									 //----------fomula : 聚焦商品移动位移=跨越之前的移动位移×卷轴移动倍数+跨越之后的移动位移(此处是将多计算出来的部分剪掉)
+									_shoesArr[i].x += _distanceX*_model.focusDividedUnfocusSpeed - (destionationX-_model.screenWidth/2-_model.focusShoeSpace)/_model.focusDividedUnfocusSpeed;
+									 //----------fomula : 聚焦商品左侧的前一个非聚焦商品移动位移=跨越之前的移动位移+跨越之后的移动位移×卷轴移动倍数(此处仅计算多余移动的部分，后面遍历时会再计算正常移动的位移)
+									_shoesArr[i-1].x += ((destionationX-_model.screenWidth/2-_model.focusShoeSpace)/_model.focusDividedUnfocusSpeed)*(_model.focusDividedUnfocusSpeed-1);//*_model.focusDividedUnfocusSpeed + (_model.screenWidth/2+_model.focusShoeSpace-_shoesArr[i].x);
 									addShoeToStage(i-3);
 									removeShoeFromStage(i+2);
-									trace("focus2   " + _shoesArr[i].x);
+									trace("from left change To right unfocus  " + _shoesArr[i].x);
 								}
-							} else if(destionationX<_model.screenWidth/2-_model.focusShoeSpace) {//向左移动出聚焦商品的范围
-								if(i==count-1) {
-									trace("   destionationX " + destionationX + "   focus1   " + _shoesArr[i].x + "    _distanceX " + _distanceX + "  *    _model.focusDividedUnfocusSpeed " + _model.focusDividedUnfocusSpeed + "  toLeft");
+							}
+						} else { //----2.若从右向左，则判断是否跨越了聚焦区域左断点
+							if(destionationX>_model.screenWidth/2-_model.focusShoeSpace) { //------3.没有跨越聚焦区域的左侧端点
+								 //----------fomula : 聚焦商品移动位移=移动位移×卷轴移动倍数
+								_shoesArr[i].x = destionationX;
+								trace("move to   _distanceX " + _distanceX + " * _model.focusDividedUnfocusSpeed" + _model.focusDividedUnfocusSpeed);
+							} else { //------3.跨越了聚焦区域的左侧端点，则判断当前聚焦商品是否为最右侧
+								if(i==rightIndex) { //--------4.若为最右侧，
+									 //----------fomula : 聚焦商品移动位移=移动位移×卷轴移动倍数
+									trace("rightest   toX " + destionationX + "  fromX " + _shoesArr[i].x + " + _distanceX " + _distanceX + "  *    _model.focusDividedUnfocusSpeed " + _model.focusDividedUnfocusSpeed);
 									_shoesArr[i].x = destionationX;
-								} else {
-									_shoesArr[i].x -= (_shoesArr[i].x-_model.screenWidth/2+_model.focusShoeSpace)*_model.focusDividedUnfocusSpeed + (_model.screenWidth/2-_model.focusShoeSpace-destionationX);
-									_shoesArr[i+1].x -= (_model.screenWidth/2-_model.focusShoeSpace-destionationX)*_model.focusDividedUnfocusSpeed + (_shoesArr[i].x-_model.screenWidth/2+_model.focusShoeSpace);
+								} else { //--------4.否则代表向左跨越左侧聚焦区域断点
+									 //----------fomula : 聚焦商品移动位移=跨越之前的移动位移×卷轴移动倍数+跨越之后的移动位移(此处是将多计算出来的部分剪掉)
+									_shoesArr[i].x -= -_distanceX*_model.focusDividedUnfocusSpeed - (_model.screenWidth/2-_model.focusShoeSpace-destionationX)/_model.focusDividedUnfocusSpeed;
+									 //----------fomula : 聚焦商品左侧的前一个非聚焦商品移动位移=跨越之前的移动位移+跨越之后的移动位移×卷轴移动倍数(此处仅计算多余移动的部分，后面遍历时会再计算正常移动的位移)
+									_shoesArr[i+1].x -= ((_model.screenWidth/2-_model.focusShoeSpace-destionationX)/_model.focusDividedUnfocusSpeed)*(_model.focusDividedUnfocusSpeed-1);//*_model.focusDividedUnfocusSpeed + (_shoesArr[i].x-_model.screenWidth/2+_model.focusShoeSpace);
 									addShoeToStage(this._focusShoeIndex+3);
 									removeShoeFromStage(this._focusShoeIndex-2);
-									trace("focus3   " + _shoesArr[i].x);
+									trace("from right change To left unfocus  " + _shoesArr[i].x);
 								}
-							} else {
-								_shoesArr[i].x = destionationX; 
-								trace("focus4   " + _shoesArr[i].x);
 							}
-//						}
-					} else {
-						trace("   destionationX " + (_shoesArr[i].x + _distanceX) + "   unfocus   " + _shoesArr[i].x + "    _distanceX " + _distanceX);
+						}
+					} else { //--1.若不为聚焦商品
+						trace("move to   _distanceX " + _distanceX);
+						//----fomula : 非聚焦商品移动位移=移动位移
 						_shoesArr[i].x += _distanceX;
 					}
 					
@@ -251,15 +288,16 @@
 				//??每次都执行
 				if(_shoesArr[this._focusShoeIndex].x>_model.screenWidth/2 + _model.focusShoeSpace) { //如果向右拖动到位置，聚焦商品换为上一个
 					if(this._focusShoeIndex-1<0) return; //如果已经到边缘，则直接return
-//					addShoeToStage(this._focusShoeIndex-3);
-//					removeShoeFromStage(this._focusShoeIndex+2);
 					makeFocusShoe(this._focusShoeIndex-1);
+//					addShoeToStage(this._focusShoeIndex-2);
+//					removeShoeFromStage(this._focusShoeIndex+3);
+					trace("-----------------------change focus toLeft--------------------");
 				} else if(_shoesArr[this._focusShoeIndex].x<_model.screenWidth/2 - _model.focusShoeSpace) { //如果向左拖动到位置，聚焦商品换为下一个
 					if(this._focusShoeIndex == _shoesArr.length-1) return; //如果已经到边缘，则直接return
-//					addShoeToStage(this._focusShoeIndex+3);
-//					removeShoeFromStage(this._focusShoeIndex-2);
 					makeFocusShoe(this._focusShoeIndex+1);
-					trace("-----------------------change focus --------------------");
+//					addShoeToStage(this._focusShoeIndex+2);
+//					removeShoeFromStage(this._focusShoeIndex-3);
+					trace("-----------------------change focus toRight --------------------");
 				}
 				
 			}
