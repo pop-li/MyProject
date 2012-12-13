@@ -4,6 +4,9 @@
 		  visible="false">
 	<fx:Script>
 		<![CDATA[
+			import com.greensock.TweenLite;
+			import com.greensock.easing.Strong;
+			
 			import vos.ClassVO;
 			[Bindable]
 			public var data : ClassVO;
@@ -12,27 +15,14 @@
 			{
 				this.visible = true;
 				
-				scaleEffect.scaleXFrom=0.8;
-				scaleEffect.scaleYFrom=0.8;
-				scaleEffect.scaleXTo=1;
-				scaleEffect.scaleYTo=1;
-				scaleEffect.duration = 400;
-				scaleEffect.target = this;
+				TweenLite.from(this, 0.4, {scaleX:0.8,scaleY:0.8, ease:Strong.easeOut});
 				
-				moveEffect.xFrom = 100;
-				moveEffect.xTo = 0;
-				moveEffect.duration = 600;
-				moveEffect.target = box;
-				
-				scaleEffect.play();
-				moveEffect.play();
+				TweenLite.from(box, 0.6, {x:100, ease:Strong.easeOut});
 			}
 		]]>
 	</fx:Script>
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<s:Scale id="scaleEffect" />
-		<s:Move id="moveEffect" />
 	</fx:Declarations>
 	<s:Group id="box" width="100%" height="100%">
 		<s:Label text="{data.type}" fontSize="30" y="-30" />

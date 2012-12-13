@@ -14,11 +14,11 @@ package model
 		/**
 		 * 商品展示的原宽度
 		 */
-		public var shoeWidth:int;
+		public var productWidth:int;
 		/**
 		 * 商品展示的原高度
 		 */
-		public var shoeHeight:int;
+		public var productHeight:int;
 		/**
 		 * (商品列表试图)聚焦商品的移动速度与非聚焦商品移动速度的比值
 		 */
@@ -30,15 +30,15 @@ package model
 		/**
 		 * (商品列表试图)聚焦商品移动范围的1/2
 		 */
-		public var focusShoeSpace:int;
+		public var focusProductSpace:int;
 		/**
 		 * (商品列表试图)非聚焦商品之间的相隔距离
 		 */
-		public var unfocusShoeSpace:int;
+		public var unfocusProductSpace:int;
 		/**
 		 * (商品列表试图)非聚焦商品缩放的倍数
 		 */
-		public var shoesScale:Number;
+		public var productsScale:Number;
 		/**
 		 * (商品列表试图)舞台同时显示的商品个数
 		 */

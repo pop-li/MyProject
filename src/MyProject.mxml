@@ -22,13 +22,13 @@
 				
 				_model.screenWidth = this.width;
 				_model.screenHeight = this.height;
-				_model.shoeWidth = 480;
-				_model.shoeHeight = 320;
+				_model.productWidth = 480;
+				_model.productHeight = 320;
 				_model.focusDividedTouchSpeed = 0.3;
-				_model.unfocusShoeSpace = _model.shoeWidth/3;
+				_model.unfocusProductSpace = _model.productWidth/3;
 				_model.focusDividedUnfocusSpeed = 2;
-				_model.focusShoeSpace = _model.unfocusShoeSpace*_model.focusDividedUnfocusSpeed/2;
-				_model.shoesScale = 0.5;
+				_model.focusProductSpace = _model.unfocusProductSpace*_model.focusDividedUnfocusSpeed/2;
+				_model.productsScale = 0.5;
 				_model.showCount4Stage = 5;
 				
 				

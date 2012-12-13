@@ -2,37 +2,74 @@
 <s:View xmlns:fx="http://ns.adobe.com/mxml/2009" 
 		xmlns:s="library://ns.adobe.com/flex/spark" 
 		xmlns:components="components.*"
-		actionBarVisible="false" 
-		viewActivate="viewActivateHandler(event)"
+		actionBarVisible="false"
 		>
 	<fx:Script>
 		<![CDATA[
-			import spark.events.ViewNavigatorEvent;
+			import com.greensock.TweenLite;
+			import com.greensock.easing.Strong;
 			
 			import model.ModelLocator;
 			[Bindable]
 			private var _model:ModelLocator = ModelLocator.getInstance();
 			
-			protected function viewActivateHandler(event:ViewNavigatorEvent):void
+			protected function toProductDetailHandler():void
 			{
+				trace("toProductDetail");
+				detailGroup.addElement(colorPage);
+				detailGroup.addElement(picturePage);
+				scroller.setStyle("verticalScrollPolicy","on");
+				
+				controlGroup.addElement(controlBar);
+				TweenLite.from(controlBar, 0.6, {x:-controlGroup.width, ease:Strong.easeOut});
+			}
+			
+			protected function toProductListHandler():void
+			{
+				
+				
+				if(controlGroup.numElements==0) {
+					
+				} else {
+					TweenLite.from(controlBar, 0.6, {x:-controlGroup.width, ease:Strong.easeOut,onComplete:
+						function ():void
+						{
+							controlGroup.removeElement(controlBar);
+						}
+					});
+					TweenLite.from(detailGroup, 0.6, {verticalScrollPosition:0, ease:Strong.easeOut,onComplete:
+						function ():void
+						{
+							detailGroup.removeElement(colorPage);
+							detailGroup.removeElement(picturePage);
+							scroller.setStyle("verticalScrollPolicy","off");
+						}
+					});
+				}
+				
+				productList.init();
 			}
 			
 		]]>
 	</fx:Script>
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<components:ColorPage width="{this.width}" height="{this.height}" />
-		<components:PicturePage width="{this.width}" height="{this.height}" />
+		<components:ColorPage id="colorPage" width="{this.width}" height="{this.height}" />
+		<components:PicturePage id="picturePage" width="{this.width}" height="{this.height}" />
+		
+		<s:BorderContainer id="controlBar" borderWeight="3" width="100%" height="80%">
+			<s:Button label="关注"/>
+			<s:Button label="返回" click="toProductListHandler()"/>
+		</s:BorderContainer>
 	</fx:Declarations>
+	
 	<s:Scroller  id="scroller" width="100%" height="100%" pageScrollingEnabled="true" scrollSnappingMode="leadingEdge"
 				 verticalScrollPolicy="off">
 		<s:VGroup id="detailGroup" width="100%" >
-			<components:ProductList width="{this.width}" height="{this.height}" />
+			<components:ProductList id="productList" width="{this.width}" height="{this.height}" toProductDetail="toProductDetailHandler()" />
 		</s:VGroup>
 	</s:Scroller>
-	<!--<s:HGroup width="100" height="100%" verticalAlign="middle">
-		<s:BorderContainer borderWeight="3" width="100%" height="80%">
-			<s:Button label="test" click="abc()"/>
-		</s:BorderContainer>
-	</s:HGroup>-->
+	<s:HGroup id="controlGroup" width="100" height="100%" verticalAlign="middle">
+		
+	</s:HGroup>
 </s:View>

@@ -5,13 +5,15 @@
 		creationComplete="setTimeout(creationCompleteHandler,1000)" xmlns:vos="vos.*">
 	<fx:Script>
 		<![CDATA[
-			import components.ClassBox;
+			import com.greensock.TweenLite;
 			
 			import flash.utils.setTimeout;
 			
 			import mx.events.FlexEvent;
 			
 			import spark.transitions.CrossFadeViewTransition;
+			
+			import components.ClassBox;
 			
 			protected function creationCompleteHandler():void
 			{
@@ -23,7 +25,7 @@
 					classBox.data = this.classArr[i];
 					classBox.addEventListener(MouseEvent.CLICK,toProductListView);
 					classGroup.addElement(classBox);
-					setTimeout(classBox.showEffect,250*(i+1));
+					TweenLite.delayedCall(0.25*(i),classBox.showEffect);
 				}
 			}
 			
@@ -42,7 +44,6 @@
 			<vos:ClassVO type="其他" source="assets/background/Border.jpg"/>
 		</fx:Vector>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<s:Scale id="scaleEffect" />
 	</fx:Declarations>
 	
 	
